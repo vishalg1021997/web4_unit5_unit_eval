@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/5594c2eb28.js" crossorigin="anonymous"></script>
+    <title>Document</title>
+
+    <style>
+        #container {
+            margin: auto;
+            width: 50%;
+        }
+
+        #add_task {
+            position: relative;
+            border: 2px solid black;
+            border-radius: 5px;
+            width: fit-content;
+            padding-left: 20px;
+        }
+
+        #label {
+            position: absolute;
+            background-color: white;
+            font-size: large;
+            color: gray;
+            top: 15px;
+            left: 15px;
+            transition: 0.5s;
+        }
+
+        #task_input:focus~#label {
+            font-size: 15px;
+            transition: 0.5s;
+            top: -5px;
+        }
+
+        #task_input:valid+#label {
+            font-size: 15px;
+            top: -5px;
+        }
+
+        #task_input {
+            width: 300px;
+            height: 50px;
+            font-size: large;
+            box-sizing: border-box;
+            border: none;
+            outline: none;
+        }
+
+        #check_box,
+        .check_box {
+            width: 50px;
+            height: 50px;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        #add,
+        .edit,
+        .delete {
+            padding: 11px 28px 18px;
+            font-size: x-large;
+            font-weight: 600;
+            max-height: 50px;
+            margin: 5px;
+            border: 0;
+            border-radius: 8px;
+            color: white;
+            background-color: hsl(211deg 100% 51%);
+        }
+
+        #add:hover {
+            border: 2px solid hsl(211deg 100% 51%);
+            background-color: white;
+            color: hsl(211deg 100% 51%);
+            cursor: pointer;
+        }
+
+        #content {
+            margin-top: 50px;
+        }
+
+        #content>div {
+            height: 50px;
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: medium;
+            margin-bottom: 15px;
+        }
+
+        #content>div>div {
+            display: flex;
+            justify-content: space-between;
+            width: 470px;
+            align-items: center;
+
+        }
+
+        #content>div>div:nth-child(2) {
+            width: 300px;
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .edit,
+        .delete {
+            padding: 18px 28px 18px;
+            background-color: hsl(208deg 7% 46%);
+            max-width: 150px;
+            font-size: medium;
+        }
+
+        .edit:hover,
+        .delete:hover {
+            border: 2px solid hsl(208deg 7% 46%);
+            background-color: white;
+            color: hsl(208deg 7% 46%);
+            cursor: pointer;
+        }
+
+        .task_text {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+
+        <h1><i class="fa-solid fa-square-check"></i> TODO List</h1>
+
+        <div style="display: flex;">
+            <div id="add_task">
+                <input type="text" placeholder="" id="task_input" required>
+                <label for="task_input" id="label">&nbsp; Enter Task Name &nbsp;</label>
+            </div>
+            <input type="checkbox" id="check_box">
+            <button id="add">ADD</button>
+        </div>
+
+        <div id="content">
+            <div>
+                <div>
+                    <span id="task_text" class="task_text">Buy Bread</span>
+                    <input type="checkbox" class="check_box" id="edit_check">
+                </div>
+                <div>
+                    <buttton id="edit" class="edit">Edit <i class="fa-solid fa-pen-to-square"></i></buttton>
+                    <buttton id="delete" class="delete">Delete <i class="fa-solid fa-calendar-xmark"></i></buttton>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var task_input = document.querySelector('#task_input')
+    var check_box = document.querySelector('#check_box')
+    var add = document.querySelector('#add')
+    var content = document.querySelector('#content')
+
+    add.addEventListener('click', add_detail)
+    async function add_detail() {
+        var a;
+        if (check_box.checked) {
+            a = true;
+        } else {
+            a = false;
+        }
+
+        var data = {
+            title: task_input.value,
+            status: a
+        }
+
+        try {
+            var res = await fetch(`http://127.0.0.1:3000/task`, {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+        } catch (error) {
+            console.log(error)
+        }
+
+    }
+
+
+    async function list() {
+        var res = await fetch(`http://127.0.0.1:3000/task`);
+        var data = await res.json();
+        console.log(data)
+        data.forEach((element, i) => {
+            var div = document.createElement('div')
+            var temp =
+                `
+                <div>
+                    <span id="task_text${i}" class="task_text">${element.title}</span>
+                    <input type="checkbox" class="check_box" id="edit_check${i}">
+                </div>
+                <div>
+                    <buttton id="edit${i}" class="edit">Edit <i class="fa-solid fa-pen-to-square"></i></buttton>
+                    <buttton id="delete${i}" class="delete">Delete <i class="fa-solid fa-calendar-xmark"></i></buttton>
+                </div>
+                `
+            div.innerHTML = temp
+            content.append(div)
+
+            var id = element.id
+            var task_text = document.querySelector('#task_text' + i)
+            var edit = document.querySelector('#edit' + i)
+            var delete_ = document.querySelector('#delete' + i)
+            var edit_check = document.querySelector('#edit_check' + i)
+
+
+            if (element.status == true) {
+                task_text.style.color = 'green'
+                edit_check.checked = 'true'
+            }
+            edit_check.addEventListener('click',toggle)
+            async function toggle() {
+
+                var a;
+                if (edit_check.checked) {
+                    a = true;
+                } else {
+                    a = false;
+                }
+                try {
+                    var res = await fetch(`http://127.0.0.1:3000/task/${id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ status: a }),
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    });
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+
+            var some = '#edit' + i
+            edit.addEventListener('click', edititing)
+
+            function edititing() {
+                task_text.innerHTML = `<input type="text" placeholder="" id="edit_input" value='${task_text.textContent}'>`
+
+                edit.setAttribute('id', 'edit_add')
+                var edit_add = document.querySelector('#edit_add')
+                var edit_input = document.querySelector('#edit_input')
+                edit_add.addEventListener('click', save_edit)
+                async function save_edit() {
+                    console.log(edit_input.value)
+                    try {
+                        var res = await fetch(`http://127.0.0.1:3000/task/${id}`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ title: edit_input.value }),
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        });
+                    } catch (error) {
+                        console.log(error)
+                    }
+
+                    task_text.textContent = edit_input.value
+                    edit_add.setAttribute('id', some)
+                }
+            }
+
+            delete_.addEventListener('click', deletef)
+            async function deletef() {
+                try {
+                    var res = await fetch(`http://127.0.0.1:3000/task/${id}`, {
+                        method: 'DELETE'
+                    });
+                    list()
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+
+        });
+
+    }
+    list()
+
+
+</script>
+
+</html>
